@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>POW GO GO</title>
+  <!-- Font import -->
+  <link href="https://fonts.googleapis.com/css2?family=Sricon&family=Middlesex+Text&family=Nugets&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Montserrat', Arial, sans-serif;
+      background: #f4f6fb;
+      color: #222;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 420px;
+      margin: 60px auto;
+      background: #fff;
+      border-radius: 14px;
+      box-shadow: 0 4px 16px rgba(36,99,166,0.08);
+      padding: 36px 28px;
+    }
+    h2 {
+      margin-bottom: 18px;
+      color: #ff69b4;
+      font-family: 'Nugets', cursive;
+      font-size: 3em;
+      letter-spacing: 2px;
+      text-shadow:
+        4px 4px 0 #222,
+        -4px -4px 0 #222,
+        0 4px 0 #222,
+        4px 0px 0 #222,
+        0 0px 12px #ffd6ef, 0 2px 0 #fff;
+      border-radius: 16px;
+      padding: 8px 0;
+      font-weight: 900;
+    }
+    .question {
+      font-size: 1.2em;
+      margin-bottom: 18px;
+      font-family: 'Pacifico', cursive;
+      color: #111;
+    }
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+    .option-btn {
+      background: #eaf0fa;
+      color: #111;
+      border: 2px solid #b6c6e3;
+      border-radius: 8px;
+      padding: 10px;
+      font-size: 1em;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background 0.2s, color 0.2s;
+      font-family: 'Pacifico', cursive;
+    }
+    .option-btn.selected {
+      background: #2463a6;
+      color: #fff;
+      border-color: #2463a6;
+    }
+    .option-btn:hover {
+      background: #dbeafe;
+    }
+    .result {
+      font-size: 1.1em;
+      margin-top: 12px;
+      font-weight: 600;
+      font-family: 'Sricon', cursive;
+    }
+    .score {
+      margin-top: 18px;
+      font-size: 1.1em;
+      color: #2463a6;
+      font-family: 'Middlesex Text', serif;
+      letter-spacing: 1px;
+    }
+    button.next {
+      background: #2463a6;
+      color: #fff;
+      border: none;
+      padding: 10px 24px;
+      border-radius: 8px;
+      font-size: 1em;
+      cursor: pointer;
+      font-weight: 600;
+      margin-top: 10px;
+      font-family: 'Sricon', cursive;
+    }
+    button.next:hover {
+      background: #174a7c;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2 style="font-family:'Nugets',cursive;color:#ff69b4;font-size:3em;letter-spacing:2px;text-shadow:4px 4px 0 #222,-4px -4px 0 #222,0 4px 0 #222,4px 0px 0 #222,0 0px 12px #ffd6ef,0 2px 0 #fff;border-radius:16px;padding:8px 0;font-weight:900;">POW GO GO</h2>
+    <div id="nomorSoal" style="font-family:'Sricon',cursive;font-size:1.2em;color:#2463a6;margin-bottom:8px;font-weight:700;"></div>
+    <div class="question" id="question"></div>
+    <div class="options" id="options"></div>
+    <div class="result" id="result"></div>
+    <button class="next" id="nextBtn" style="display:none;">Soal Berikutnya</button>
+    <button class="next" id="startBtn" style="display:block;margin-bottom:18px;">Mulai Kuis</button>
+    <div class="score" id="score"></div>
+    <div style="margin-top:12px;font-family:'Middlesex Text',serif;font-size:1.1em;" id="timer"></div>
+    <button id="muteBtn" style="position:absolute;top:18px;right:24px;background:#fff;border:2px solid #ff69b4;color:#ff69b4;padding:6px 10px;border-radius:8px;cursor:pointer;z-index:10;display:flex;align-items:center;justify-content:center;width:44px;height:44px;">
+      <span id="muteIcon">
+        <!-- Speaker ON SVG (black) -->
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M3 9v6h4l5 5V4L7 9H3z" fill="#222"/>
+          <path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v8.06A4.992 4.992 0 0016.5 12z" fill="#222"/>
+        </svg>
+      </span>
+    </button>
+  </div>
+  <script>
+    let timer = 30;
+    let timerInterval;
+
+    function startTimer() {
+      document.getElementById('timer').textContent = `Sisa waktu: ${timer} detik`;
+      timerInterval = setInterval(() => {
+        timer--;
+        document.getElementById('timer').textContent = `Sisa waktu: ${timer} detik`;
+        if (timer <= 0) {
+          clearInterval(timerInterval);
+          endGameByTime();
+        }
+      }, 1000);
+    }
+
+    function endGameByTime() {
+      document.getElementById('question').textContent = 'Waktu habis untuk soal ini!';
+      document.getElementById('options').innerHTML = '';
+      document.getElementById('nextBtn').style.display = 'inline-block';
+      document.getElementById('result').textContent = '';
+      document.getElementById('timer').textContent = '';
+    }
+    const questions = [
+      {
+        q: 'Kata penghubung yang menunjukkan urutan waktu (contoh: kemudian, selanjutnya) adalah ….',
+        options: ['Sinonim', 'Konjungsi', 'Predikat', 'Nomina'],
+        answer: 1
+      },
+      {
+        q: 'Bagian teks yang berisi alat dan bahan yang diperlukan disebut ….',
+        options: ['Material', 'Orientasi', 'Kohesi', 'Evaluasi'],
+        answer: 0
+      },
+      {
+        q: 'Teknik penyajian dengan urutan angka disebut ….',
+        options: ['Narasi', 'Numeral', 'Modalitas', 'Konjungsi'],
+        answer: 1
+      },
+      {
+        q: 'Jenis kata kerja yang menunjukkan aksi fisik dalam prosedur adalah ….',
+        options: ['Verba', 'Saran', 'Nomina', 'Konjungsi'],
+        answer: 0
+      },
+      {
+        q: 'Kalimat yang mengandung anjuran, bukan perintah, disebut ….',
+        options: ['Perintah', 'Imperatif', 'Saran', 'Verba'],
+        answer: 2
+      },
+      {
+        q: 'Ciri kebahasaan yang menggunakan kata harus / sebaiknya disebut ….',
+        options: ['Narasi', 'Modalitas', 'Kohesi', 'Bahan'],
+        answer: 1
+      },
+      {
+        q: 'Aspek kebahasaan yang menunjukkan hubungan logis antarproposisi disebut ….',
+        options: ['Konjungsi', 'Kohesi', 'Saran', 'Numeral'],
+        answer: 1
+      },
+      {
+        q: 'Verba yang menunjukkan proses mental dalam pelaksanaan prosedur adalah ….',
+        options: ['Imperatif', 'Kognitif', 'Naratif', 'Material'],
+        answer: 1
+      },
+      {
+        q: 'Teknik penalaran yang digunakan dalam penyusunan langkah prosedur adalah ….',
+        options: ['Induktif', 'Deduktif', 'Analogi', 'Perbandingan'],
+        answer: 1
+      },
+      {
+        q: 'Struktur teks prosedur yang berisi daftar alat atau bahan adalah ….',
+        options: ['Tujuan', 'Bahan', 'Langkah', 'Kesimpulan'],
+        answer: 1
+      },
+      {
+        q: 'Kata kerja yang digunakan dalam teks prosedur, misalnya: potong, masukkan, nyalakan disebut ….',
+        options: ['Saran', 'Imperatif', 'Verba mental', 'Narasi'],
+        answer: 1
+      },
+      {
+        q: 'Struktur teks prosedur bagian awal yang menjelaskan maksud kegiatan disebut ….',
+        options: ['Bahan', 'Langkah', 'Tujuan', 'Evaluasi'],
+        answer: 2
+      },
+      {
+        q: 'Jenis kalimat yang dipakai dalam teks prosedur adalah ….',
+        options: ['Tanya', 'Perintah', 'Berita', 'Seru'],
+        answer: 1
+      },
+      {
+        q: 'Contoh teks prosedur sederhana: resep …. ',
+        options: ['Puisi', 'Masakan', 'Novel', 'Cerita'],
+        answer: 1
+      },
+      {
+        q: 'Bahasa teks prosedur harus … agar mudah dipahami.',
+        options: ['Rumit', 'Efektif', 'Panjang', 'Tidak jelas'],
+        answer: 1
+      },
+      {
+        q: 'Struktur terakhir dari teks prosedur adalah …. ',
+        options: ['Tujuan', 'Langkah', 'Bahan', 'Evaluasi'],
+        answer: 1
+      },
+      {
+        q: 'Contoh teks prosedur kompleks: cara membuat …. ',
+        options: ['Roti', 'SIM', 'Teh manis', 'Nasi goreng'],
+        answer: 1
+      },
+      {
+        q: 'Bagian teks prosedur yang menjawab “mengapa kegiatan ini dilakukan” adalah …. ',
+        options: ['Tujuan', 'Bahan', 'Langkah', 'Evaluasi'],
+        answer: 0
+      },
+      {
+        q: 'Teks prosedur singkat biasanya ada di … produk instan.',
+        options: ['Brosur', 'Iklan', 'Kemasan', 'Resep'],
+        answer: 2
+      }
+    ];
+    let current = 0;
+    let score = 0;
+    let selected = null;
+    let benar = 0;
+    let salah = 0;
+    let soalAcak = [];
+
+    function showQuestion() {
+      stopSpeech();
+      document.getElementById('nomorSoal').textContent = `Soal ${current + 1} / ${soalAcak.length}`;
+      document.getElementById('question').textContent = soalAcak[current].q;
+      const optionsDiv = document.getElementById('options');
+      optionsDiv.innerHTML = '';
+      soalAcak[current].options.forEach((opt, idx) => {
+        const btn = document.createElement('button');
+        btn.className = 'option-btn';
+        btn.textContent = opt;
+        btn.onclick = () => selectOption(idx, btn);
+        optionsDiv.appendChild(btn);
+      });
+      document.getElementById('result').textContent = '';
+      document.getElementById('nextBtn').style.display = 'none';
+      document.getElementById('score').textContent = '';
+      selected = null;
+      // Timer per soal
+      if (typeof timerInterval !== 'undefined') clearInterval(timerInterval);
+      timer = 30;
+      document.getElementById('timer').textContent = `Sisa waktu: ${timer} detik`;
+      timerInterval = setInterval(() => {
+        timer--;
+        document.getElementById('timer').textContent = `Sisa waktu: ${timer} detik`;
+        if (timer <= 0) {
+          clearInterval(timerInterval);
+          endGameByTime();
+        }
+      }, 1000);
+      playSound('soal', soalAcak[current].q);
+    }
+
+    function endGameByTime() {
+      document.getElementById('question').textContent = 'Waktu habis untuk soal ini!';
+      document.getElementById('options').innerHTML = '';
+      document.getElementById('nextBtn').style.display = 'inline-block';
+      document.getElementById('result').textContent = '';
+      document.getElementById('timer').textContent = '';
+    }
+    function tampilkanHasilAkhir() {
+      document.getElementById('question').textContent = 'Permainan selesai!';
+      document.getElementById('options').innerHTML = '';
+      document.getElementById('nextBtn').style.display = 'none';
+      document.getElementById('result').textContent = '';
+      document.getElementById('score').textContent = `Skor akhir: ${score} / ${soalAcak.length}`;
+      document.getElementById('timer').textContent = '';
+      // Hapus hasil sebelumnya jika ada
+      const hasilLama = document.getElementById('hasilAkhir');
+      if (hasilLama) hasilLama.remove();
+      const kunciLama = document.getElementById('kunciAkhir');
+      if (kunciLama) kunciLama.remove();
+      // Tampilkan hasil benar/salah dan total poin
+      const hasil = document.createElement('div');
+      hasil.id = 'hasilAkhir';
+      hasil.style.marginTop = '18px';
+      hasil.style.fontFamily = "'Middlesex Text', serif";
+      hasil.style.fontSize = '1.1em';
+      hasil.innerHTML = `<b>Jawaban Benar:</b> ${benar}<br><b>Jawaban Salah:</b> ${salah}<br><b>Total Poin:</b> ${score}`;
+      document.querySelector('.container').appendChild(hasil);
+      // Tampilkan kunci jawaban dan soal
+      const kunciDiv = document.createElement('div');
+      kunciDiv.id = 'kunciAkhir';
+      kunciDiv.style.marginTop = '18px';
+      kunciDiv.style.textAlign = 'left';
+      kunciDiv.style.fontFamily = "'Middlesex Text', serif";
+      kunciDiv.style.fontSize = '1em';
+      kunciDiv.innerHTML = '<b>Kunci Jawaban & Soal:</b><br>' + soalAcak.map((q, i) => `<b>Soal ${i+1}:</b> ${q.q}<br><b>Kunci:</b> ${q.options[q.answer]}<br>`).join('<br>');
+      document.querySelector('.container').appendChild(kunciDiv);
+    }
+
+    function selectOption(idx, btn) {
+      stopSpeech();
+      const optionBtns = document.querySelectorAll('.option-btn');
+      optionBtns.forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      selected = idx;
+      // Cek jawaban benar/salah
+      if (selected === soalAcak[current].answer) {
+        checkAnswer();
+        playSound('benar', null, () => {
+          if (typeof timerInterval !== 'undefined') clearInterval(timerInterval);
+          current++;
+          if (current < soalAcak.length) {
+            showQuestion();
+          } else {
+            tampilkanHasilAkhir();
+          }
+        });
+      } else {
+        checkAnswer();
+        playSound('salah', null, () => {
+          if (typeof timerInterval !== 'undefined') clearInterval(timerInterval);
+          current++;
+          if (current < soalAcak.length) {
+            showQuestion();
+          } else {
+            tampilkanHasilAkhir();
+          }
+        });
+      }
+    }
+
+    let suaraAktif = true;
+    document.getElementById('muteBtn').onclick = function() {
+      suaraAktif = !suaraAktif;
+      const muteIcon = document.getElementById('muteIcon');
+      if (suaraAktif) {
+        // Speaker ON SVG (black)
+        muteIcon.innerHTML = `
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 9v6h4l5 5V4L7 9H3z" fill="#222"/>
+            <path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v8.06A4.992 4.992 0 0016.5 12z" fill="#222"/>
+          </svg>
+        `;
+        this.style.background = '#fff';
+        this.style.border = '2px solid #ff69b4';
+      } else {
+        stopSpeech();
+        // Speaker OFF/Mute SVG (black)
+        muteIcon.innerHTML = `
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v8.06A4.992 4.992 0 0016.5 12z" fill="#222"/>
+            <path d="M3 9v6h4l5 5V4L7 9H3z" fill="#222"/>
+            <line x1="19" y1="5" x2="5" y2="19" stroke="#ff69b4" stroke-width="2"/>
+          </svg>
+        `;
+        this.style.background = '#ff69b4';
+        this.style.border = '2px solid #fff';
+      }
+    };
+
+    function playSound(type, text, callback) {
+      if (!suaraAktif) {
+        if (callback) callback();
+        return;
+      }
+      if ('speechSynthesis' in window) {
+        let utter;
+        if (type === 'benar') {
+          utter = new SpeechSynthesisUtterance('Jawaban kamu benar!');
+        } else if (type === 'salah') {
+          utter = new SpeechSynthesisUtterance('Jawaban kamu salah!');
+        } else if (type === 'mulai') {
+          utter = new SpeechSynthesisUtterance('Selamat bermain POW GO GO!');
+        } else if (type === 'soal' && text) {
+          utter = new SpeechSynthesisUtterance(text);
+        }
+        if (utter) {
+          utter.lang = 'id-ID';
+          utter.rate = 0.95;
+          utter.volume = 1;
+          utter.pitch = 1.1;
+          // Pastikan suara jawaban hanya diputar sekali
+          utter.onstart = function() {
+            window.speechSynthesis.cancel = function() {};
+          };
+          if (callback) {
+            utter.onend = function() {
+              window.speechSynthesis.cancel = SpeechSynthesis.prototype.cancel;
+              callback();
+            };
+          }
+          window.speechSynthesis.speak(utter);
+        } else if (callback) {
+          callback();
+        }
+      } else if (callback) {
+        callback();
+      }
+    }
+
+    function stopSpeech() {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+    }
+
+    function checkAnswer() {
+      stopSpeech();
+      if (selected === soalAcak[current].answer) {
+        document.getElementById('result').textContent = 'Benar!';
+        document.getElementById('result').style.color = 'green';
+        score++;
+        benar++;
+        playSound('benar');
+      } else {
+        document.getElementById('result').textContent = `Salah! Jawaban yang benar: ${soalAcak[current].options[soalAcak[current].answer]}`;
+        document.getElementById('result').style.color = 'red';
+        salah++;
+        playSound('salah');
+      }
+    }
+
+    document.getElementById('nextBtn').onclick = function() {
+      current++;
+      if (typeof timerInterval !== 'undefined') clearInterval(timerInterval);
+      if (current < soalAcak.length) {
+        showQuestion();
+      } else {
+        tampilkanHasilAkhir();
+      }
+    };
+
+    document.getElementById('startBtn').onclick = function() {
+      document.getElementById('startBtn').style.display = 'none';
+      // Acak soal dan ambil 10 soal
+      soalAcak = [...questions];
+      for (let i = soalAcak.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [soalAcak[i], soalAcak[j]] = [soalAcak[j], soalAcak[i]];
+      }
+      soalAcak = soalAcak.slice(0, 10);
+      current = 0;
+      score = 0;
+      benar = 0;
+      salah = 0;
+      playSound('mulai');
+      showQuestion();
+    };
+
+    // Ubah inisialisasi agar soal tidak langsung muncul
+    window.onload = function() {
+      document.getElementById('question').textContent = '';
+      document.getElementById('options').innerHTML = '';
+      document.getElementById('result').textContent = '';
+      document.getElementById('nextBtn').style.display = 'none';
+      document.getElementById('score').textContent = '';
+      document.getElementById('timer').textContent = '';
+      document.getElementById('startBtn').style.display = 'block';
+    };
+  </script>
+</body>
+</html>
